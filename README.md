@@ -39,9 +39,10 @@ The API (`apps/api`) is stateless: no database, and no personal data on disk or 
 | | |
 |---|---|
 | **Model family** | Gemma 4 by Google DeepMind, open weights |
-| **Default model** | Gemma 4 E4B: 4.5B effective parameters (8B with embeddings), built-in audio encoder |
+| **Hosted model (Gemini API)** | `gemma-4-26b-a4b-it`: Gemma 4 26B A4B, 25.2B total parameters, 3.8B active, no audio encoder, so speech is transcribed first |
+| **Preferred model** | Gemma 4 E4B: 4.5B effective parameters (8B with embeddings), built-in audio encoder. Not offered on our Gemini API key at the time of writing |
 | **Local id (Ollama)** | `gemma4:e4b` |
-| **Hosted id (Gemini API)** | chosen at startup from the live models list, E4B first. The exact id in use is always shown at `GET /api/health` |
+| **Model selection** | chosen at startup from the live models list, E4B first. The exact id in use is always shown at `GET /api/health` |
 | **License** | Apache 2.0: [license text](https://ai.google.dev/gemma/apache_2) |
 | **Model card** | [Gemma 4 model card](https://ai.google.dev/gemma/docs/core/model_card_4) |
 

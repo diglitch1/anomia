@@ -31,7 +31,7 @@ services:
       GEMMA_PROVIDER: ollama
       OLLAMA_URL: http://ollama:11434
       OLLAMA_MODEL: ${OLLAMA_MODEL:-gemma4:e4b}
-      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:5173}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:8080}
       ELEVENLABS_API_KEY: ${ELEVENLABS_API_KEY:-}
       DEFAULT_VOICE_ID: ${DEFAULT_VOICE_ID:-}
 
