@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createProvider } from "../src/gemma/index.js";
-import { isAudioCapable, selectGemmaModel } from "../src/gemma/models.js";
+import { alternativeGemmaModels, isAudioCapable, selectGemmaModel } from "../src/gemma/models.js";
 
 const LISTED = ["models/gemini-2.5-flash", "models/gemma-4-31b-it", "models/gemma-4-e4b-it", "models/gemma-4-26b-a4b-it"];
 
@@ -46,5 +46,17 @@ describe("isAudioCapable", () => {
     expect(isAudioCapable("gemma-4-e4b-it")).toBe(true);
     expect(isAudioCapable("gemma-4-26b-a4b-it")).toBe(false);
     expect(isAudioCapable("gemma-4-31b-it")).toBe(false);
+  });
+});
+
+describe("alternativeGemmaModels", () => {
+  const hosted = ["models/gemini-2.5-flash", "models/gemma-4-26b-a4b-it", "models/gemma-4-31b-it"];
+
+  it("offers other text-and-image Gemma 4 models only", () => {
+    expect(alternativeGemmaModels(hosted, "gemma-4-26b-a4b-it")).toEqual(["gemma-4-31b-it"]);
+  });
+
+  it("offers none for an audio-capable model", () => {
+    expect(alternativeGemmaModels([...hosted, "models/gemma-4-e4b-it"], "gemma-4-e4b-it")).toEqual([]);
   });
 });
