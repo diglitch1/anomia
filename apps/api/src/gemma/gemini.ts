@@ -1,5 +1,6 @@
 import { GoogleGenAI, ThinkingLevel, type Part } from "@google/genai";
 import { config } from "../config.js";
+import { hedge } from "./hedge.js";
 import { isAudioCapable, selectGemmaModel } from "./models.js";
 import { finalizeResult } from "./parse.js";
 import { buildRepairText, buildUserText, SYSTEM_INSTRUCTION } from "./prompt.js";
@@ -45,26 +46,32 @@ export class GeminiProvider implements GemmaProvider {
     return finalizeResult(raw, (bad) => this.complete([{ text: buildRepairText(bad) }]));
   }
 
-  private async complete(parts: Part[], retries = 2): Promise<string> {
+  private async complete(parts: Part[]): Promise<string> {
     try {
-      return await this.generate(parts);
+      return await this.hedged(parts);
     } catch (error) {
       // Not every Gemma variant accepts a thinking level; remember that and retry without it.
-      const { status, message, name } = error as { status?: number; message?: string; name?: string };
-      // Gemma on the Gemini API returns occasional 500s that clear on the next attempt.
-      if (retries > 0 && ((status ?? 0) >= 500 || name === "TimeoutError" || name === "AbortError")) {
-        await new Promise((resolve) => setTimeout(resolve, 300));
-        return this.complete(parts, retries - 1);
-      }
+      const { status, message } = error as { status?: number; message?: string };
       if (this.thinkingConfigSupported && status === 400 && /thinking/i.test(message ?? "")) {
         this.thinkingConfigSupported = false;
-        return this.generate(parts);
+        return this.hedged(parts);
       }
       throw error;
     }
   }
 
-  private async generate(parts: Part[]): Promise<string> {
+  private hedged(parts: Part[]): Promise<string> {
+    return hedge((signal) => this.generate(parts, signal), {
+      attempts: config.geminiAttempts,
+      staggerMs: config.geminiStaggerMs,
+      isFatal: (error) => {
+        const status = (error as { status?: number }).status ?? 0;
+        return status >= 400 && status < 500 && status !== 429;
+      },
+    });
+  }
+
+  private async generate(parts: Part[], signal: AbortSignal): Promise<string> {
     if (!this.client || !this.model) throw new Error("Gemini provider is not initialised");
     const response = await this.client.models.generateContent({
       model: this.model,
@@ -72,7 +79,7 @@ export class GeminiProvider implements GemmaProvider {
       config: {
         systemInstruction: SYSTEM_INSTRUCTION,
         temperature: 0.4,
-        abortSignal: AbortSignal.timeout(config.geminiTimeoutMs),
+        abortSignal: AbortSignal.any([signal, AbortSignal.timeout(config.geminiTimeoutMs)]),
         ...(this.thinkingConfigSupported
           ? { thinkingConfig: { thinkingLevel: ThinkingLevel.MINIMAL } }
           : {}),
