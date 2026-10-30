@@ -1,0 +1,39 @@
+# Local variant: Gemma 4 E4B runs on your machine through Ollama.
+# Ollama's chat API has no audio input, so speech still goes through ElevenLabs speech-to-text.
+services:
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama:/root/.ollama
+
+  ollama-pull:
+    image: ollama/ollama:latest
+    depends_on:
+      - ollama
+    environment:
+      OLLAMA_HOST: http://ollama:11434
+    entrypoint: ["/bin/sh", "-c", "sleep 3 && ollama pull ${OLLAMA_MODEL:-gemma4:e4b}"]
+    volumes:
+      - ollama:/root/.ollama
+    restart: "no"
+
+  api:
+    build: ./apps/api
+    depends_on:
+      ollama-pull:
+        condition: service_completed_successfully
+    ports:
+      - "8787:8787"
+    environment:
+      PORT: 8787
+      GEMMA_PROVIDER: ollama
+      OLLAMA_URL: http://ollama:11434
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-gemma4:e4b}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:5173}
+      ELEVENLABS_API_KEY: ${ELEVENLABS_API_KEY:-}
+      DEFAULT_VOICE_ID: ${DEFAULT_VOICE_ID:-}
+
+volumes:
+  ollama:
