@@ -97,10 +97,15 @@ Update your own line only.
 
 - **A (Core):** core and frontend are on `main` and work together with a fake model. Still needs real keys and the DigitalOcean deployment.
 - **B (Speech):** not started
-- **C (Image):** not started
+- **C (Image):** `prepareImage` merged (PR #1). Face recognition added in `src/image/faces/` (YuNet + SFace, consent-gated, embeddings only on the device); needs wiring, see Requests. Still open: Gemma 4 benchmark with a real key.
 
 ## Requests
 
 Add requests to another person here, with your letter and the file concerned.
 
-- (none yet)
+- **C → A, `apps/api/.npmrc`:** add `onnxruntime-node-install=skip`. Otherwise `npm ci` on Linux x64 (CI, Docker) downloads CUDA binaries we don't use; the CPU build is bundled.
+- **C → A, `apps/api/src/integrations.ts` + `app.ts`:** optionally load `./image/faces/index.js` like voice, and mount `createFaceRouter()` at `/api` (`POST /faces/enroll`, `POST /faces/identify`). Map nothing: the router returns its own 400/503.
+- **C → A, `apps/api/src/routes/suggest.ts` + `gemma/prompt.ts`:** accept a `knownFaces` form field; after `prepareImage`, if `facesAvailable()` and the list is not empty, call `recognizeFaces(prepared.data, parseKnownFaces(req.body.knownFaces))` and pass only the names as `peopleInView`. `parseKnownFaces` throws `ImageRejectedError`, so the existing 400 mapping already covers bad input. Prompt text is in `docs/image-notes.md`.
+- **C → A, `apps/api/Dockerfile`:** run `node dist/image/faces/download-models.js` at build time (checksummed, about 37 MB), or set `FACE_MODELS_DIR` to a mounted volume. Without the models, face endpoints answer 503 and everything else works.
+- **C → A, `apps/web`:** a "People" screen to enroll a person: photo, name, and a consent checkbox the *person in the photo* confirms. Store `{name, embedding, model}` in the on-device profile, send them as `knownFaces` with `/api/suggest`, and allow deleting a person.
+- **C → A, `README.md` (Privacy):** face embeddings are biometric data; enrollment needs the person's consent; embeddings live only on the device; the server stores and logs none of it.
