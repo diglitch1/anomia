@@ -1,4 +1,13 @@
-export type ImageRejectedCode = "empty" | "too_large" | "unsupported_type" | "unreadable" | "timeout";
+export type ImageRejectedCode =
+  | "empty"
+  | "too_large"
+  | "unsupported_type"
+  | "unreadable"
+  | "timeout"
+  | "no_face"
+  | "multiple_faces"
+  | "face_too_small"
+  | "invalid_faces";
 
 /**
  * Thrown when an upload cannot be used. The message is written for end users
