@@ -33,3 +33,13 @@ export function selectGemmaModel(listed: string[], requested?: string): string {
   }
   throw new Error("No Gemma 4 model found in the models list");
 }
+
+/**
+ * Other Gemma 4 models worth asking in parallel, because hosted Gemma can stall or fail per model.
+ * Audio-capable models get none, since their requests carry audio the others would refuse.
+ */
+export function alternativeGemmaModels(listed: string[], selected: string): string[] {
+  if (isAudioCapable(selected)) return [];
+  const ids = listed.map((id) => id.replace(/^models\//, ""));
+  return ids.filter((id) => id !== selected && !isAudioCapable(id) && PREFERENCE.some((p) => p.test(id)));
+}
