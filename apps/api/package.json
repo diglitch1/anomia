@@ -20,14 +20,15 @@
     "cors": "^2.8.6",
     "express": "^5.3.0",
     "ffmpeg-static": "^5.3.0",
-    "multer": "^2.5.0"
+    "multer": "^2.5.0",
+    "sharp": "^0.35.5"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/multer": "^2.3.0",
     "@types/node": "^20.19.43",
-    "sharp": "^0.35.5",
+    "exif-reader": "^2.0.3",
     "tsx": "^4.23.15",
     "typescript": "^5.9.3",
     "vitest": "^3.2.7"
