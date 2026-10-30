@@ -95,7 +95,7 @@ Errors are JSON: `{error}`. Node 20, TypeScript, ESM.
 
 Update your own line only.
 
-- **A (Core):** in progress
+- **A (Core):** code complete and tested with a fake model. Still needs a run with real keys, the Docker build and the DigitalOcean deployment.
 - **B (Speech):** not started
 - **C (Image):** not started
 

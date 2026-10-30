@@ -1,0 +1,62 @@
+# DigitalOcean App Platform. Both components share one domain, so /api is routed to the service.
+# VITE_API_URL is the app URL because the frontend appends /api/... itself.
+# Secrets have no value here: set them in the dashboard after creating the app (see README).
+name: anomia
+region: fra
+ingress:
+  rules:
+    - match:
+        path:
+          prefix: /api
+      component:
+        name: api
+        preserve_path_prefix: true
+    - match:
+        path:
+          prefix: /
+      component:
+        name: web
+static_sites:
+  - name: web
+    github:
+      repo: diglitch1/anomia
+      branch: main
+      deploy_on_push: true
+    source_dir: apps/web
+    environment_slug: node-js
+    build_command: npm ci && npm run build
+    output_dir: dist
+    catchall_document: index.html
+    envs:
+      - key: VITE_API_URL
+        scope: BUILD_TIME
+        value: ${APP_URL}
+services:
+  - name: api
+    github:
+      repo: diglitch1/anomia
+      branch: main
+      deploy_on_push: true
+    source_dir: apps/api
+    environment_slug: node-js
+    build_command: npm run build
+    run_command: npm run start
+    http_port: 8787
+    instance_count: 1
+    instance_size_slug: basic-xxs
+    health_check:
+      http_path: /api/health
+      initial_delay_seconds: 15
+    envs:
+      - key: GEMMA_PROVIDER
+        value: gemini
+      - key: ALLOWED_ORIGINS
+        value: ${APP_URL}
+      - key: TRUST_PROXY_HOPS
+        value: "1"
+      - key: GEMINI_API_KEY
+        type: SECRET
+      - key: ELEVENLABS_API_KEY
+        type: SECRET
+      - key: DEFAULT_VOICE_ID
+        type: SECRET
