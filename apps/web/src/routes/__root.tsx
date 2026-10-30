@@ -12,7 +12,6 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { registerServiceWorker } from "../lib/sw-register";
-import { BottomNav } from "../components/ui-kit";
 
 function NotFoundComponent() {
   return (
@@ -55,7 +54,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "theme-color", content: "#f8f0e0" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { title: "Anomia" },
-      { name: "description", content: "Say what you mean, in your own voice." },
+      { name: "description", content: "Aphasia takes the words, not the thoughts. Anomia helps people say what they mean, in their own voice." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -93,12 +92,7 @@ function RootComponent() {
   }, []);
   return (
     <QueryClientProvider client={queryClient}>
-      <div className="flex min-h-dvh flex-col">
-        <main className="mx-auto flex w-full max-w-md flex-1 flex-col px-4 py-4">
-          <Outlet />
-        </main>
-        <BottomNav />
-      </div>
+      <Outlet />
     </QueryClientProvider>
   );
 }

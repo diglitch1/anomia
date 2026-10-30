@@ -18,7 +18,17 @@ const K = {
   profile: "anomia.profile",
   picks: "anomia.recentPicks",
   voice: "anomia.voiceId",
+  camera: "anomia.camera",
 };
+
+// Storage can throw in private windows, and the app must keep working without it.
+function write(key: string, value: string) {
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    /* ignore */
+  }
+}
 
 function read<T>(key: string, fallback: T): T {
   try {
@@ -30,7 +40,7 @@ function read<T>(key: string, fallback: T): T {
 }
 
 export const getProfile = (): Profile => ({ ...EMPTY_PROFILE, ...read(K.profile, {}) });
-export const saveProfile = (p: Profile) => localStorage.setItem(K.profile, JSON.stringify(p));
+export const saveProfile = (p: Profile) => write(K.profile, JSON.stringify(p));
 
 export const MAX_PICKS = 10;
 export function addPick(list: string[], sentence: string): string[] {
@@ -38,10 +48,33 @@ export function addPick(list: string[], sentence: string): string[] {
 }
 export const getRecentPicks = (): string[] => read<string[]>(K.picks, []);
 export function rememberPick(sentence: string) {
-  localStorage.setItem(K.picks, JSON.stringify(addPick(getRecentPicks(), sentence)));
+  write(K.picks, JSON.stringify(addPick(getRecentPicks(), sentence)));
 }
 
-export const getVoiceId = (): string | null => localStorage.getItem(K.voice);
+export function getVoiceId(): string | null {
+  try {
+    return localStorage.getItem(K.voice);
+  } catch {
+    return null;
+  }
+}
 export const voiceIdOrDefault = () => getVoiceId() || "default";
-export const setVoiceId = (id: string | null) =>
-  id ? localStorage.setItem(K.voice, id) : localStorage.removeItem(K.voice);
+export function setVoiceId(id: string | null) {
+  if (id) write(K.voice, id);
+  else clearKey(K.voice);
+}
+
+export const getCameraOn = (): boolean => read(K.camera, false);
+export const setCameraOn = (on: boolean) => write(K.camera, JSON.stringify(on));
+
+function clearKey(key: string) {
+  try {
+    localStorage.removeItem(key);
+  } catch {
+    /* ignore */
+  }
+}
+
+export function clearAllData() {
+  Object.values(K).forEach(clearKey);
+}

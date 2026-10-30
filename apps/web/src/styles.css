@@ -3,9 +3,11 @@
 @import "tw-animate-css";
 @import "@fontsource/atkinson-hyperlegible/400.css";
 @import "@fontsource/atkinson-hyperlegible/700.css";
+@import "@fontsource-variable/fraunces/wght.css";
 
 @theme inline {
   --font-sans: "Atkinson Hyperlegible", system-ui, sans-serif;
+  --font-display: "Fraunces Variable", Georgia, serif;
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 6px);
   --radius-2xl: calc(var(--radius) + 12px);
@@ -27,6 +29,8 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-ink: var(--ink);
+  --color-ink-foreground: var(--ink-foreground);
 }
 
 :root {
@@ -49,6 +53,8 @@
   --border: oklch(0.8 0.03 70);
   --input: oklch(0.7 0.04 60);
   --ring: oklch(0.5 0.13 40);
+  --ink: oklch(0.27 0.045 42);
+  --ink-foreground: oklch(0.96 0.025 85);
   --shadow-soft: 0 10px 30px -12px color-mix(in oklab, var(--foreground) 35%, transparent);
 }
 
@@ -70,6 +76,52 @@
   animation: rec-pulse 1.6s ease-in-out infinite;
 }
 
+.bar {
+  display: block;
+  width: 3px;
+  border-radius: 2px;
+  background: currentColor;
+}
+
+.bars-active .bar {
+  animation: bar-bounce 0.9s ease-in-out infinite;
+  transform-origin: center;
+}
+
+@keyframes bar-bounce {
+  0%, 100% { transform: scaleY(0.45); }
+  50% { transform: scaleY(1.15); }
+}
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: none; }
+}
+
+.rise {
+  animation: rise 0.45s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.fragment {
+  letter-spacing: 0.01em;
+  text-decoration: underline wavy color-mix(in oklab, var(--primary) 45%, transparent) 2px;
+  text-underline-offset: 0.22em;
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .reveal {
+      animation: rise linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 45%;
+    }
+  }
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
 @layer base {
   * {
     border-color: var(--color-border);
@@ -89,6 +141,9 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;

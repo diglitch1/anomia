@@ -1,17 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { Mic, Square, Upload, Trash2, Check, Undo2 } from "lucide-react";
-import { BigButton, ErrorBox, Loading, inputClass } from "@/components/ui-kit";
-import { ApiError, audioExtension, cloneVoice } from "@/lib/api";
+import { Mic, Square, Upload, Trash2, Check, Undo2, Volume2 } from "lucide-react";
+import { AppShell, BigButton, ErrorBox, Loading, inputClass } from "@/components/ui-kit";
+import { ApiError, audioExtension, cloneVoice, speak } from "@/lib/api";
 import { isPermissionError, pickAudioMime } from "@/lib/media";
 import { getVoiceId, setVoiceId } from "@/lib/storage";
 
 export const Route = createFileRoute("/voice")({
   head: () => ({
     meta: [
-      { title: "Anomia — My voice" },
+      { title: "My voice | Anomia" },
       { name: "description", content: "Use your own voice for the sentences you choose." },
-      { property: "og:title", content: "Anomia — My voice" },
+      { property: "og:title", content: "My voice | Anomia" },
       { property: "og:description", content: "Use your own voice for the sentences you choose." },
     ],
   }),
@@ -23,6 +23,14 @@ const MAX_BYTES = 30 * 1024 * 1024;
 const mb = (n: number) => (n / 1024 / 1024).toFixed(1);
 
 function VoiceScreen() {
+  return (
+    <AppShell>
+      <VoicePanel />
+    </AppShell>
+  );
+}
+
+function VoicePanel() {
   const [voiceId, setVoice] = useState<string | null>(null);
   const [samples, setSamples] = useState<File[]>([]);
   const [name, setName] = useState("");
@@ -31,6 +39,7 @@ function VoiceScreen() {
   const [status, setStatus] = useState<"idle" | "sending" | "done">("idle");
   const [error, setError] = useState<string | null>(null);
   const [micDenied, setMicDenied] = useState(false);
+  const [testing, setTesting] = useState(false);
   const recRef = useRef<MediaRecorder | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -66,7 +75,23 @@ function VoiceScreen() {
       setRecording(true);
     } catch (e) {
       if (isPermissionError(e)) setMicDenied(true);
-      else setError("Recording is not available.");
+      else setError("Recording needs a secure (HTTPS) connection.");
+    }
+  }
+
+  async function testVoice() {
+    setError(null);
+    setTesting(true);
+    try {
+      const blob = await speak("Hello, this is my voice.", voiceId ?? "default");
+      const url = URL.createObjectURL(blob);
+      const audio = new Audio(url);
+      audio.onended = () => URL.revokeObjectURL(url);
+      await audio.play();
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : "Could not play the voice.");
+    } finally {
+      setTesting(false);
     }
   }
 
@@ -92,6 +117,9 @@ function VoiceScreen() {
 
       <div className="flex flex-col gap-3 rounded-2xl bg-card p-5 shadow-soft">
         <p className="text-xl font-bold">{voiceId ? "Using: your voice" : "Using: standard voice"}</p>
+        <BigButton variant="secondary" disabled={testing} onClick={() => void testVoice()}>
+          <Volume2 className="size-7" aria-hidden /> {testing ? "Playing..." : "Hear this voice"}
+        </BigButton>
         {voiceId && (
           <BigButton variant="ghost" onClick={() => { setVoiceId(null); setVoice(null); setStatus("idle"); }}>
             <Undo2 className="size-7" aria-hidden /> Use standard voice
@@ -108,7 +136,7 @@ function VoiceScreen() {
               <Check className="size-8" aria-hidden /> Your voice is ready
             </p>
           )}
-          <p className="text-lg">Add 1–5 clips of you talking.</p>
+          <p className="text-lg">Add 1 to 5 clips of you talking. A clear minute or more works best.</p>
 
           <div className="grid grid-cols-2 gap-3">
             <BigButton
@@ -148,7 +176,7 @@ function VoiceScreen() {
             <ul className="flex flex-col gap-2" aria-label="Samples">
               {samples.map((f, i) => (
                 <li key={i} className="flex items-center gap-3 rounded-xl bg-card p-3 shadow-soft">
-                  <span className="flex-1 truncate text-lg">Clip {i + 1} · {mb(f.size)} MB</span>
+                  <span className="flex-1 truncate text-lg">Clip {i + 1}, {mb(f.size)} MB</span>
                   <button
                     type="button"
                     aria-label={`Remove clip ${i + 1}`}
@@ -162,7 +190,7 @@ function VoiceScreen() {
             </ul>
           )}
           <p className={tooBig ? "text-lg font-bold text-destructive" : "text-base text-muted-foreground"}>
-            {samples.length}/{MAX_FILES} clips · {mb(total)} of 30 MB
+            {samples.length} of {MAX_FILES} clips, {mb(total)} of 30 MB
           </p>
 
           <div className="flex flex-col gap-2">
@@ -177,10 +205,10 @@ function VoiceScreen() {
               onChange={(e) => setConsent(e.target.checked)}
               className="mt-1 size-8 shrink-0 accent-primary"
             />
-            <span className="text-lg font-bold">This is my own voice and I agree to it being cloned.</span>
+            <span className="text-lg font-bold">This is my voice, or I am legally allowed to decide for this person, and I agree to it being cloned by ElevenLabs.</span>
           </label>
 
-          {error && <ErrorBox message={error} onRetry={() => void submit()} />}
+          {error && <ErrorBox message={error} onRetry={() => setError(null)} retryLabel="OK" />}
 
           <BigButton onClick={() => void submit()} disabled={!canSubmit}>
             <Check className="size-7" aria-hidden /> Use my voice

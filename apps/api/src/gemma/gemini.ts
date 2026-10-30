@@ -45,12 +45,17 @@ export class GeminiProvider implements GemmaProvider {
     return finalizeResult(raw, (bad) => this.complete([{ text: buildRepairText(bad) }]));
   }
 
-  private async complete(parts: Part[]): Promise<string> {
+  private async complete(parts: Part[], retries = 2): Promise<string> {
     try {
       return await this.generate(parts);
     } catch (error) {
       // Not every Gemma variant accepts a thinking level; remember that and retry without it.
-      const { status, message } = error as { status?: number; message?: string };
+      const { status, message, name } = error as { status?: number; message?: string; name?: string };
+      // Gemma on the Gemini API returns occasional 500s that clear on the next attempt.
+      if (retries > 0 && ((status ?? 0) >= 500 || name === "TimeoutError" || name === "AbortError")) {
+        await new Promise((resolve) => setTimeout(resolve, 300));
+        return this.complete(parts, retries - 1);
+      }
       if (this.thinkingConfigSupported && status === 400 && /thinking/i.test(message ?? "")) {
         this.thinkingConfigSupported = false;
         return this.generate(parts);
