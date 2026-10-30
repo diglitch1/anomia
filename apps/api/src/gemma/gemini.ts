@@ -5,8 +5,10 @@ import { finalizeResult } from "./parse.js";
 import { buildRepairText, buildUserText, SYSTEM_INSTRUCTION } from "./prompt.js";
 import type { GemmaProvider, SuggestInput, SuggestResult } from "./types.js";
 
-const MAX_ATTEMPTS = 3;
-const RETRY_DELAY_MS = 500;
+const MAX_ATTEMPTS = 5;
+const RETRY_DELAY_MS = 150;
+// Healthy answers take about 3 s, while a stalled request can hang for 30 s, so restart it early.
+const ATTEMPT_TIMEOUT_MS = 6_000;
 
 function inlinePart(data: Buffer, mimeType: string): Part {
   return { inlineData: { data: data.toString("base64"), mimeType } };
@@ -88,7 +90,7 @@ export class GeminiProvider implements GemmaProvider {
           config: {
             systemInstruction: SYSTEM_INSTRUCTION,
             temperature: 0.4,
-            abortSignal: signal,
+            abortSignal: AbortSignal.any([signal, AbortSignal.timeout(ATTEMPT_TIMEOUT_MS)]),
             ...(this.thinkingConfigSupported
               ? { thinkingConfig: { thinkingLevel: ThinkingLevel.MINIMAL } }
               : {}),
@@ -98,8 +100,9 @@ export class GeminiProvider implements GemmaProvider {
         if (!text.trim()) throw Object.assign(new Error("Empty model response"), { status: 502 });
         return text;
       } catch (error) {
-        const status = (error as { status?: number }).status ?? 0;
-        if (attempt >= MAX_ATTEMPTS || status < 500 || signal.aborted) throw error;
+        const { status = 0, name } = error as { status?: number; name?: string };
+        const stalled = name === "TimeoutError" || name === "AbortError";
+        if (attempt >= MAX_ATTEMPTS || signal.aborted || (status < 500 && !stalled)) throw error;
         await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS));
       }
     }
