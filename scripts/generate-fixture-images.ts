@@ -1,7 +1,7 @@
 /**
  * Draws placeholder scene photos for the demo scenarios with sharp (simple SVG shapes).
  *
- *   npx tsx scripts/generate-fixture-images.ts
+ *   cd apps/api && npx tsx ../../scripts/generate-fixture-images.ts
  *
  * Writes fixtures/scenarios/<scenario>/image.jpg. Only touches image.jpg; the other
  * files in those folders belong to other parts of the project.

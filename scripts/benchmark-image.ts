@@ -1,7 +1,7 @@
 /**
  * Benchmarks prepareImage sizes/qualities against Gemma 4 through the Gemini API.
  *
- *   GEMINI_API_KEY=... npx tsx scripts/benchmark-image.ts [options]
+ *   cd apps/api && GEMINI_API_KEY=... npx tsx ../../scripts/benchmark-image.ts [options]
  *
  * Options:
  *   --models a,b        Gemma 4 ids to test (default: every gemma-4 id the API lists)
