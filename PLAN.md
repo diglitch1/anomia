@@ -87,7 +87,7 @@ Errors are JSON: `{error}`. Node 20, TypeScript, ESM.
 
 ## Open blockers
 
-- [ ] `apps/web`: the Lovable frontend is not in the repo yet.
+- [x] `apps/web`: the Lovable frontend is on `main`.
 - [ ] `GEMINI_API_KEY`, `ELEVENLABS_API_KEY`, `DEFAULT_VOICE_ID`: nobody has confirmed these yet.
 - [ ] Team names for the README.
 
@@ -95,7 +95,7 @@ Errors are JSON: `{error}`. Node 20, TypeScript, ESM.
 
 Update your own line only.
 
-- **A (Core):** code complete and tested with a fake model. Still needs a run with real keys, the Docker build and the DigitalOcean deployment.
+- **A (Core):** core and frontend are on `main` and work together with a fake model. Still needs real keys and the DigitalOcean deployment.
 - **B (Speech):** not started
 - **C (Image):** not started
 

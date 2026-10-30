@@ -32,7 +32,7 @@ Built for the MLH Hacktoberfest Hack Day Linz, "Best Open-Source AI Project" cha
  POST /api/voice/clone -> ElevenLabs Instant Voice Cloning (consent=true required)
 ```
 
-The API (`apps/api`) is stateless: no database, and no personal data on disk or in logs.
+The API (`apps/api`) is stateless: no database, and no personal data on disk or in logs. The frontend (`apps/web`) was built with Lovable and keeps the profile only on the device.
 
 ## The AI
 
