@@ -142,7 +142,7 @@ Without doctl: Create App, choose the repo, then paste `.do/app.yaml` in the App
 
 ## Known limitations
 
-- Hosted Gemma on the Gemini API can take 20 s or more and sometimes returns server errors, so the API asks all available Gemma 4 models in parallel and uses the first answer. The 4 s target is not met on this path.
+- Hosted Gemma on the Gemini API can take 20 s or more and sometimes returns server errors, so the API asks all available Gemma 4 models in parallel, asks again every 12 s, and uses the first answer. The 4 s target is not met on this path.
 - Suggestions can be wrong; the person always chooses, and nothing is spoken without a tap.
 - Models without an audio encoder, and Ollama, depend on speech-to-text, which may struggle with fragments and adds latency.
 - The Ollama variant is not fully offline, because speech-to-text and voice output need ElevenLabs.

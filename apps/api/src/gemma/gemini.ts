@@ -1,3 +1,4 @@
+import { setTimeout } from "node:timers/promises";
 import { GoogleGenAI, ThinkingLevel, type Part } from "@google/genai";
 import { config } from "../config.js";
 import { alternativeGemmaModels, isAudioCapable, selectGemmaModel } from "./models.js";
@@ -7,6 +8,8 @@ import type { GemmaProvider, SuggestInput, SuggestResult } from "./types.js";
 
 const MAX_ATTEMPTS = 3;
 const RETRY_DELAY_MS = 500;
+const ROUNDS = 3;
+const ROUND_DELAY_MS = 12_000;
 
 function inlinePart(data: Buffer, mimeType: string): Part {
   return { inlineData: { data: data.toString("base64"), mimeType } };
@@ -65,13 +68,23 @@ export class GeminiProvider implements GemmaProvider {
     }
   }
 
-  /** Asks every candidate at once and uses the first answer, since hosted Gemma stalls unpredictably. */
+  /**
+   * Hosted Gemma answered in anything from 2 s to over 45 s in testing, so every candidate is asked
+   * again each round without cancelling earlier requests, and the first answer wins.
+   */
   private async generate(parts: Part[]): Promise<string> {
     if (!this.client || !this.model) throw new Error("Gemini provider is not initialised");
     const cancel = new AbortController();
     const signal = AbortSignal.any([cancel.signal, AbortSignal.timeout(config.geminiTimeoutMs)]);
+    const candidates = [this.model, ...this.alternatives];
+    const requests = Array.from({ length: ROUNDS }, (_, round) => round).flatMap((round) =>
+      candidates.map(async (model) => {
+        await setTimeout(round * ROUND_DELAY_MS, undefined, { signal });
+        return this.generateOn(model, parts, signal);
+      }),
+    );
     try {
-      return await Promise.any([this.model, ...this.alternatives].map((model) => this.generateOn(model, parts, signal)));
+      return await Promise.any(requests);
     } catch (error) {
       throw error instanceof AggregateError ? error.errors[0] : error;
     } finally {
@@ -87,7 +100,7 @@ export class GeminiProvider implements GemmaProvider {
           contents: [{ role: "user", parts }],
           config: {
             systemInstruction: SYSTEM_INSTRUCTION,
-            temperature: 0.4,
+            temperature: 0.3,
             abortSignal: signal,
             ...(this.thinkingConfigSupported
               ? { thinkingConfig: { thinkingLevel: ThinkingLevel.MINIMAL } }
@@ -100,7 +113,7 @@ export class GeminiProvider implements GemmaProvider {
       } catch (error) {
         const status = (error as { status?: number }).status ?? 0;
         if (attempt >= MAX_ATTEMPTS || status < 500 || signal.aborted) throw error;
-        await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS));
+        await setTimeout(RETRY_DELAY_MS, undefined, { signal });
       }
     }
   }

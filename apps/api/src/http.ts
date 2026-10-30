@@ -23,8 +23,13 @@ export const requestLog: RequestHandler = (req, res, next) => {
 
 /** Safe description of a provider failure: never includes messages, which could echo user input. */
 export function describeError(error: unknown): string {
-  const { name, status, code } = (error ?? {}) as { name?: string; status?: number; code?: string };
-  return [name ?? "Error", status, code].filter(Boolean).join(" ");
+  const { name, status, statusCode, code } = (error ?? {}) as {
+    name?: string;
+    status?: number;
+    statusCode?: number;
+    code?: string;
+  };
+  return [name ?? "Error", status ?? statusCode, code].filter(Boolean).join(" ");
 }
 
 export const errorHandler: ErrorRequestHandler = (error, _req, res, next) => {
