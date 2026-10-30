@@ -13,6 +13,7 @@ if (existsSync("dist/client")) {
 const { count } = await generateSW({
   globDirectory: "dist",
   globPatterns: ["**/*.{js,css,html,png,ico,webmanifest,woff2}"],
+  globIgnores: ["audio/**"],
   swDest: "dist/sw.js",
   skipWaiting: true,
   clientsClaim: true,

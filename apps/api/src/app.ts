@@ -1,3 +1,4 @@
+import { resolve } from "node:path";
 import cors from "cors";
 import express from "express";
 import { config } from "./config.js";
@@ -41,6 +42,12 @@ export function createApp(provider: GemmaProvider, integrations: Integrations): 
   }
 
   app.use("/api", (_req, _res, next) => next(new HttpError(404, "Not found")));
+  // Lets one server and one HTTPS tunnel carry both the API and the built web app.
+  if (config.webDist) {
+    const root = resolve(config.webDist);
+    app.use(express.static(root));
+    app.get(/.*/, (_req, res) => res.sendFile("index.html", { root }));
+  }
   app.use(errorHandler);
   return app;
 }

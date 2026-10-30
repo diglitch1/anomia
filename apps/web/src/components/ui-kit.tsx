@@ -41,18 +41,26 @@ export function Loading({ label }: { label: string }) {
   );
 }
 
-export function ErrorBox({ message, onRetry }: { message: string; onRetry: () => void }) {
+export function ErrorBox({
+  message,
+  onRetry,
+  retryLabel = "Try again",
+}: {
+  message: string;
+  onRetry: () => void;
+  retryLabel?: string;
+}) {
   return (
     <div role="alert" className="flex flex-col gap-4 rounded-2xl bg-card p-5 shadow-soft">
       <p className="text-2xl font-bold">{message}</p>
       <BigButton onClick={onRetry}>
-        <RotateCcw className="size-7" aria-hidden /> Try again
+        <RotateCcw className="size-7" aria-hidden /> {retryLabel}
       </BigButton>
     </div>
   );
 }
 
-function NavItem({ to, icon, label }: { to: "/" | "/profile" | "/voice"; icon: ReactNode; label: string }) {
+function NavItem({ to, icon, label }: { to: "/app" | "/profile" | "/voice"; icon: ReactNode; label: string }) {
   return (
     <Link
       to={to}
@@ -70,11 +78,44 @@ export function BottomNav() {
   return (
     <nav aria-label="Main" className="sticky bottom-0 z-10 border-t-2 bg-card px-2 pb-[env(safe-area-inset-bottom)] pt-2">
       <div className="mx-auto flex max-w-md gap-2 pb-2">
-        <NavItem to="/" icon={<Mic className="size-7" aria-hidden />} label="Speak" />
+        <NavItem to="/app" icon={<Mic className="size-7" aria-hidden />} label="Speak" />
         <NavItem to="/profile" icon={<User className="size-7" aria-hidden />} label="Me" />
         <NavItem to="/voice" icon={<AudioLines className="size-7" aria-hidden />} label="Voice" />
       </div>
     </nav>
+  );
+}
+
+export function Wordmark({ className }: { className?: string }) {
+  return (
+    <span className={cn("inline-flex items-center gap-2 font-display text-2xl font-semibold tracking-tight", className)}>
+      <SoundBars className="h-6 text-primary" />
+      Anomia
+    </span>
+  );
+}
+
+export function SoundBars({ className, active = false }: { className?: string; active?: boolean }) {
+  return (
+    <span aria-hidden className={cn("inline-flex items-center gap-[3px]", active && "bars-active", className)}>
+      {[0.45, 1, 0.65, 0.85, 0.35].map((height, i) => (
+        <span key={i} className="bar" style={{ height: `${height * 100}%`, animationDelay: `${i * 90}ms` }} />
+      ))}
+    </span>
+  );
+}
+
+export function AppShell({ children }: { children: ReactNode }) {
+  return (
+    <div className="flex min-h-dvh flex-col">
+      <header className="mx-auto flex w-full max-w-md items-center px-4 pt-3">
+        <Link to="/" aria-label="Anomia home" className="rounded-lg">
+          <Wordmark />
+        </Link>
+      </header>
+      <main className="mx-auto flex w-full max-w-md flex-1 flex-col px-4 py-4">{children}</main>
+      <BottomNav />
+    </div>
   );
 }
 

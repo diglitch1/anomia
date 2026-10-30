@@ -6,7 +6,7 @@ Built for the MLH Hacktoberfest Hack Day Linz, "Best Open-Source AI Project" cha
 
 ## 60-second demo
 
-1. Open the app on a phone and allow camera and microphone.
+1. Open `/app` and allow camera and microphone.
 2. Point the camera at a mug and say: "wa... cup... hot... no".
 3. Three sentences appear, for example "The cup is too hot." or "I want some water instead."
 4. Tap one. Only now is audio generated, and the phone says it out loud.

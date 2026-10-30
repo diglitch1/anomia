@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AppRouteImport } from './routes/app'
 import { Route as DemoRouteImport } from './routes/demo'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as VoiceRouteImport } from './routes/voice'
@@ -17,6 +18,11 @@ import { Route as VoiceRouteImport } from './routes/voice'
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppRoute = AppRouteImport.update({
+  id: '/app',
+  path: '/app',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DemoRoute = DemoRouteImport.update({
@@ -37,12 +43,14 @@ const VoiceRoute = VoiceRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/app': typeof AppRoute
   '/demo': typeof DemoRoute
   '/profile': typeof ProfileRoute
   '/voice': typeof VoiceRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/app': typeof AppRoute
   '/demo': typeof DemoRoute
   '/profile': typeof ProfileRoute
   '/voice': typeof VoiceRoute
@@ -50,20 +58,22 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/app': typeof AppRoute
   '/demo': typeof DemoRoute
   '/profile': typeof ProfileRoute
   '/voice': typeof VoiceRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/demo' | '/profile' | '/voice'
+  fullPaths: '/' | '/app' | '/demo' | '/profile' | '/voice'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/demo' | '/profile' | '/voice'
-  id: '__root__' | '/' | '/demo' | '/profile' | '/voice'
+  to: '/' | '/app' | '/demo' | '/profile' | '/voice'
+  id: '__root__' | '/' | '/app' | '/demo' | '/profile' | '/voice'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AppRoute: typeof AppRoute
   DemoRoute: typeof DemoRoute
   ProfileRoute: typeof ProfileRoute
   VoiceRoute: typeof VoiceRoute
@@ -76,6 +86,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app': {
+      id: '/app'
+      path: '/app'
+      fullPath: '/app'
+      preLoaderRoute: typeof AppRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/demo': {
@@ -104,6 +121,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AppRoute: AppRoute,
   DemoRoute: DemoRoute,
   ProfileRoute: ProfileRoute,
   VoiceRoute: VoiceRoute,

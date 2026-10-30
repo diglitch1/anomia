@@ -1,15 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Check, Save } from "lucide-react";
-import { BigButton, inputClass } from "@/components/ui-kit";
-import { EMPTY_PROFILE, getProfile, saveProfile, type Profile } from "@/lib/storage";
+import { Check, Save, Trash2 } from "lucide-react";
+import { AppShell, BigButton, inputClass } from "@/components/ui-kit";
+import { clearAllData, EMPTY_PROFILE, getProfile, saveProfile, type Profile } from "@/lib/storage";
 
 export const Route = createFileRoute("/profile")({
   head: () => ({
     meta: [
-      { title: "Anomia — About me" },
+      { title: "About me | Anomia" },
       { name: "description", content: "Tell Anomia about you so suggestions fit your life." },
-      { property: "og:title", content: "Anomia — About me" },
+      { property: "og:title", content: "About me | Anomia" },
       { property: "og:description", content: "Tell Anomia about you so suggestions fit your life." },
     ],
   }),
@@ -25,6 +25,14 @@ const FIELDS: { key: keyof Profile; label: string; hint: string; long?: boolean 
 ];
 
 function ProfileScreen() {
+  return (
+    <AppShell>
+      <ProfileForm />
+    </AppShell>
+  );
+}
+
+function ProfileForm() {
   const [profile, setProfile] = useState<Profile>(EMPTY_PROFILE);
   const [saved, setSaved] = useState(false);
   useEffect(() => setProfile(getProfile()), []);
@@ -61,7 +69,20 @@ function ProfileScreen() {
         {saved ? <Check className="size-7" aria-hidden /> : <Save className="size-7" aria-hidden />}
         {saved ? "Saved" : "Save"}
       </BigButton>
-      <p className="text-base text-muted-foreground">Saved only on this phone.</p>
+      <p className="text-base text-muted-foreground">
+        Saved only on this device. It is sent with each request so suggestions fit your life, and it is never stored on a server.
+      </p>
+      <BigButton
+        variant="ghost"
+        onClick={() => {
+          if (!window.confirm("Delete your profile, recent choices and voice link from this device?")) return;
+          clearAllData();
+          setProfile(EMPTY_PROFILE);
+          setSaved(false);
+        }}
+      >
+        <Trash2 className="size-7" aria-hidden /> Delete my data
+      </BigButton>
       <footer className="mt-auto pt-4 text-center text-base text-muted-foreground">
         Communication aid prototype. Not a medical device.
       </footer>

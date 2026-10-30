@@ -24,6 +24,7 @@ export const config = {
   ollamaUrl: (process.env.OLLAMA_URL ?? "http://localhost:11434").replace(/\/$/, ""),
   ollamaModel: process.env.OLLAMA_MODEL?.trim() || "gemma4:e4b",
   ollamaTimeoutMs: intEnv("OLLAMA_TIMEOUT_MS", 120_000),
+  webDist: process.env.WEB_DIST?.trim() || undefined,
   maxBodyBytes: 15 * 1024 * 1024,
   rateLimitPerMinute: 30,
 };

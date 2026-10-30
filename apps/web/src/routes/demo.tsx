@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { Mic, Square, Volume2, RotateCcw, X, CameraOff } from "lucide-react";
-import { BigButton, Loading } from "@/components/ui-kit";
+import { AppShell, BigButton, Loading } from "@/components/ui-kit";
 import { speak } from "@/lib/api";
 import { captureFrame, isPermissionError } from "@/lib/media";
 import { voiceIdOrDefault } from "@/lib/storage";
@@ -140,6 +140,7 @@ function DemoScreen() {
   const showCamera = phase.kind === "idle" || recording || phase.kind === "thinking";
 
   return (
+    <AppShell>
     <div className="flex flex-1 flex-col gap-5">
       <h1 className="sr-only">Speak (demo)</h1>
 
@@ -222,5 +223,6 @@ function DemoScreen() {
         )}
       </div>
     </div>
+    </AppShell>
   );
 }
